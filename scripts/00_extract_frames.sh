@@ -1,5 +1,5 @@
 #!/bin/bash
-dataset_dir="YOUR_DATASET_PATH"
+dataset_dir="/data/changhd_data/lavad/datasets/ucf_crime"
 
 # Set paths
 videos_dir="${dataset_dir}/videos"

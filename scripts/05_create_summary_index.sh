@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=8
 
-dataset_dir="YOUR_DATASET_PATH"
+dataset_dir="/data/changhd_data/lavad/datasets/ucf_crime"
 llm_model_name="llama-2-13b-chat"
 batch_size=32
 frame_interval=16
