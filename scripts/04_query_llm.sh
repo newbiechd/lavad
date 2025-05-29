@@ -3,7 +3,7 @@ export OMP_NUM_THREADS=8
 export CUDA_VISIBLE_DEVICES=0,1
 
 dataset_dir="/data/changhd_data/lavad/datasets/ucf_crime"
-llm_model_name="llama-2-13b-chat"
+llm_model_name="Deepseek-R1-Distill-Qwen-14B"
 batch_size=32
 frame_interval=16
 index_name="opt-6.7b-coco+opt-6.7b+flan-t5-xxl+flan-t5-xl+flan-t5-xl-coco"  # Change this to the index name you created in scripts/02_create_index.sh
@@ -34,20 +34,18 @@ dir_name=$(printf "%s_%s" "$exp_id" "$dir_name")
 output_scores_dir="${dataset_dir}/scores/raw/${llm_model_name}/${index_name}/${dir_name}/"
 output_summary_dir="${dataset_dir}/captions/summary/${llm_model_name}/$index_name/"
 
-torchrun \
-    --nproc_per_node 2 --nnodes 1 -m src.models.llm_anomaly_scorer \
+python \
+    -m src.models.llm_anomaly_scorer \
     --root_path "$root_path" \
     --annotationfile_path "$annotationfile_path" \
     --batch_size "$batch_size" \
     --frame_interval "$frame_interval" \
     --summary_prompt "$summary_prompt" \
     --output_summary_dir "$output_summary_dir" \
-    --captions_dir "$captions_dir" \
-    --ckpt_dir libs/llama/llama-2-13b-chat/ \
-    --tokenizer_path libs/llama/tokenizer.model
+    --captions_dir "$captions_dir"
 
-torchrun \
-    --nproc_per_node 2 --nnodes 1 -m src.models.llm_anomaly_scorer \
+python \
+    -m src.models.llm_anomaly_scorer \
     --root_path "$root_path" \
     --annotationfile_path "$annotationfile_path" \
     --batch_size "$batch_size" \
@@ -56,6 +54,4 @@ torchrun \
     --context_prompt "$context_prompt" \
     --format_prompt "$format_prompt" \
     --output_scores_dir "$output_scores_dir" \
-    --ckpt_dir libs/llama/llama-2-13b-chat/ \
-    --tokenizer_path libs/llama/tokenizer.model \
     --score_summary
