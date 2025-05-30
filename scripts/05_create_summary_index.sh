@@ -2,7 +2,7 @@
 export OMP_NUM_THREADS=8
 
 dataset_dir="/data/changhd_data/lavad/datasets/ucf_crime"
-llm_model_name="llama-2-13b-chat"
+llm_model_name="Deepseek-R1-Distill-Qwen-14B"
 batch_size=32
 frame_interval=16
 index_dim=1024

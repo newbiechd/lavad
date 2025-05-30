@@ -34,15 +34,15 @@ dir_name=$(printf "%s_%s" "$exp_id" "$dir_name")
 output_scores_dir="${dataset_dir}/scores/raw/${llm_model_name}/${index_name}/${dir_name}/"
 output_summary_dir="${dataset_dir}/captions/summary/${llm_model_name}/$index_name/"
 
-python \
-    -m src.models.llm_anomaly_scorer \
-    --root_path "$root_path" \
-    --annotationfile_path "$annotationfile_path" \
-    --batch_size "$batch_size" \
-    --frame_interval "$frame_interval" \
-    --summary_prompt "$summary_prompt" \
-    --output_summary_dir "$output_summary_dir" \
-    --captions_dir "$captions_dir"
+# python \
+#     -m src.models.llm_anomaly_scorer \
+#     --root_path "$root_path" \
+#     --annotationfile_path "$annotationfile_path" \
+#     --batch_size "$batch_size" \
+#     --frame_interval "$frame_interval" \
+#     --summary_prompt "$summary_prompt" \
+#     --output_summary_dir "$output_summary_dir" \
+#     --captions_dir "$captions_dir"
 
 python \
     -m src.models.llm_anomaly_scorer \

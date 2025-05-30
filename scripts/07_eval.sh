@@ -7,7 +7,7 @@ frame_interval=16
 num_neighbors=10
 video_fps=30  # Change this to the frame rate of your videos
 
-exp_id=""  # Change this to the experiment ID from scripts/04_query_llm.sh
+exp_id="540972"  # Change this to the experiment ID from scripts/04_query_llm.sh
 index_name="opt-6.7b-coco+opt-6.7b+flan-t5-xxl+flan-t5-xl+flan-t5-xl-coco"  # Change this to the index name you created in scripts/02_create_index.sh
 
 # Set paths

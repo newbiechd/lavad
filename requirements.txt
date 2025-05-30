@@ -9,7 +9,7 @@ einops
 fvcore
 eva-decord==0.6.1
 iopath
-numpy>=1.19
+numpy>=1.19,<2.0
 matplotlib
 types-regex
 cartopy

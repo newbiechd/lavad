@@ -48,7 +48,7 @@ class LLMAnomalyScorer:
         self.generator = LLM(
             model="/data/changhd_data/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
             tensor_parallel_size=2,
-            max_num_seqs=16,
+            max_num_seqs=1,
             max_model_len=self.max_seq_len,
             trust_remote_code=True,
         )
@@ -73,7 +73,7 @@ class LLMAnomalyScorer:
             ]
 
         prompts = [
-            f"<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{clip}<|im_end|>\n<|im_start|>assistant"
+            f"<|im_start|>user\n{system}\n{clip}<|im_end|>\n<|im_start|>assistant<think>\n\n</think>"
             for clip in batch_clip_caption
         ]
         return prompts
@@ -96,21 +96,27 @@ class LLMAnomalyScorer:
             results = self.generator.generate(prompts, self.sampling_params)
 
             for result, clip_frame_idx in zip(results, batch_frame_idxs):
-                temporal_summaries[str(clip_frame_idx)] = result.outputs[0].text.strip()
+                # print(f"Response for frame {clip_frame_idx}: {result}")
+                response_text = result.outputs[0].text.strip()
+                # print(f"Response text: {response_text}")
+                if "</think>" in response_text:
+                    summary = response_text.split("</think>")[-1].strip()
+                else:
+                    summary = response_text.strip()
+                temporal_summaries[str(clip_frame_idx)] = summary
 
         return temporal_summaries
 
     def _parse_score(self, response):
-        pattern = r"\\[(\\d+(?:\\.\\d+)?)\\]"
+        pattern = r"\[(\d+(?:\.\d+)?)\]"
         match = re.search(pattern, response)
         score = float(match.group(1)) if match else -1
         return score
 
     def _interpolate_unmatched_scores(self, scores):
-        keys = list(map(int, scores.keys()))
-        valid_scores = [(k, scores[str(k)]) for k in keys if scores[str(k)] != -1]
-        video_scores = np.interp(keys, *zip(*valid_scores))
-        return dict(zip(map(str, keys), video_scores))
+        valid_scores = [(idx, score) for idx, score in scores.items() if score != -1]
+        video_scores = np.interp(list(scores.keys()), *zip(*valid_scores))
+        return dict(zip(scores.keys(), video_scores))
 
     def _score_temporal_summaries(self, video, temporal_summaries):
         video_scores = {}
@@ -130,8 +136,14 @@ class LLMAnomalyScorer:
             results = self.generator.generate(prompts, self.sampling_params)
 
             for result, frame_idx in zip(results, batch_frame_idxs):
-                response = result.outputs[0].text.strip()
-                score = self._parse_score(response)
+                print(f"Response for frame {frame_idx}: {result}")
+                response_text = result.outputs[0].text.strip()
+                print(f"Response text: {response_text}")
+                if "</think>" in response_text:
+                    response_score = response_text.split("</think>")[-1].strip()
+                else:
+                    response_score = response_text.strip()
+                score = self._parse_score(response_score)
                 video_scores[str(frame_idx)] = score
 
         video_scores = self._interpolate_unmatched_scores(video_scores)
@@ -241,7 +253,7 @@ def parse_args():
     parser.add_argument("--captions_dir", type=str)
     parser.add_argument("--temperature", type=float, default=0.6)
     parser.add_argument("--top_p", type=float, default=0.9)
-    parser.add_argument("--max_seq_len", type=int, default=512)
+    parser.add_argument("--max_seq_len", type=int, default=4096)
     parser.add_argument("--max_gen_len", type=int, default=None)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--pathname", type=str, default="*.json")
