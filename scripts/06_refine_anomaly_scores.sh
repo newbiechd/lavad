@@ -1,8 +1,8 @@
 #!/bin/bash
 export OMP_NUM_THREADS=8
 
-dataset_dir="YOUR_DATASET_PATH"
-llm_model_name="llama-2-13b-chat"
+dataset_dir="/data/changhd_data/lavad/datasets/ucf_crime"
+llm_model_name="Deepseek-R1-Distill-Qwen-14B"
 batch_size=32
 frame_interval=16
 fps=30  # Change this to the frame rate of your videos
@@ -10,7 +10,7 @@ T=10
 N=10
 num_neighbors=10
 
-exp_id="" # Change this to the experiment ID from scripts/04_query_llm.sh
+exp_id="540972" # Change this to the experiment ID from scripts/04_query_llm.sh
 index_name="opt-6.7b-coco+opt-6.7b+flan-t5-xxl+flan-t5-xl+flan-t5-xl-coco"  # Change this to the index name you created in scripts/02_create_index.sh
 
 # Set paths

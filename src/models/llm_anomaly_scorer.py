@@ -6,8 +6,8 @@ from typing import List
 
 import numpy as np
 from tqdm import tqdm
+from vllm import LLM, SamplingParams
 
-from libs.llama.llama import Dialog, Llama
 from src.data.video_record import VideoRecord
 from src.utils.path_utils import find_unprocessed_videos
 
@@ -25,8 +25,6 @@ class LLMAnomalyScorer:
         output_scores_dir,
         output_summary_dir,
         captions_dir,
-        ckpt_dir,
-        tokenizer_path,
         temperature,
         top_p,
         max_seq_len,
@@ -42,41 +40,43 @@ class LLMAnomalyScorer:
         self.output_scores_dir = output_scores_dir
         self.output_summary_dir = output_summary_dir
         self.captions_dir = captions_dir
-        self.ckpt_dir = ckpt_dir
-        self.tokenizer_path = tokenizer_path
         self.temperature = temperature
         self.top_p = top_p
         self.max_seq_len = max_seq_len
         self.max_gen_len = max_gen_len
 
-        self.generator = Llama.build(
-            ckpt_dir=self.ckpt_dir,
-            tokenizer_path=self.tokenizer_path,
-            max_seq_len=self.max_seq_len,
-            max_batch_size=self.batch_size,
+        self.generator = LLM(
+            model="/data/changhd_data/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
+            tensor_parallel_size=2,
+            max_num_seqs=1,
+            max_model_len=self.max_seq_len,
+            trust_remote_code=True,
         )
 
-    def _prepare_dialogs(self, captions, batch_frame_idxs, is_summary):
+        self.sampling_params = SamplingParams(
+            temperature=self.temperature,
+            top_p=self.top_p,
+            max_tokens=self.max_gen_len,
+        )
+
+    def _prepare_prompts(self, captions, batch_frame_idxs, is_summary):
         if is_summary:
-            prompt = self.context_prompt + " " + self.format_prompt
+            system = self.context_prompt + " " + self.format_prompt
             batch_clip_caption = [f"{captions[str(idx)]}." for idx in batch_frame_idxs]
         else:
-            prompt = self.summary_prompt
+            system = self.summary_prompt
             batch_clip_caption = [
-                "\n ".join(
-                    [captions[str(idx)][str(frame_idx)] for frame_idx in captions[str(idx)]]
-                )
+                "\n ".join([
+                    captions[str(idx)][str(frame_idx)] for frame_idx in captions[str(idx)]
+                ])
                 for idx in batch_frame_idxs
             ]
 
-        dialogs: List[Dialog] = [
-            [
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": clip_caption},
-            ]
-            for clip_caption in batch_clip_caption
+        prompts = [
+            f"<|im_start|>user\n{system}\n{clip}<|im_end|>\n<|im_start|>assistant<think>\n\n</think>"
+            for clip in batch_clip_caption
         ]
-        return dialogs
+        return prompts
 
     def _generate_temporal_summaries(self, video, video_captions):
         temporal_summaries = {}
@@ -91,19 +91,19 @@ class LLMAnomalyScorer:
             )
             batch_frame_idxs = range(batch_start_frame, batch_end_frame, self.frame_interval)
 
-            dialogs = self._prepare_dialogs(video_captions, batch_frame_idxs, is_summary=False)
+            prompts = self._prepare_prompts(video_captions, batch_frame_idxs, is_summary=False)
 
-            results = self.generator.chat_completion(
-                dialogs,
-                max_gen_len=self.max_gen_len,
-                temperature=self.temperature,
-                top_p=self.top_p,
-            )
+            results = self.generator.generate(prompts, self.sampling_params)
 
             for result, clip_frame_idx in zip(results, batch_frame_idxs):
-                temporal_summaries[str(clip_frame_idx)] = result["generation"]["content"].split(
-                    "\n"
-                )[-1]
+                # print(f"Response for frame {clip_frame_idx}: {result}")
+                response_text = result.outputs[0].text.strip()
+                # print(f"Response text: {response_text}")
+                if "</think>" in response_text:
+                    summary = response_text.split("</think>")[-1].strip()
+                else:
+                    summary = response_text.strip()
+                temporal_summaries[str(clip_frame_idx)] = summary
 
         return temporal_summaries
 
@@ -116,7 +116,6 @@ class LLMAnomalyScorer:
     def _interpolate_unmatched_scores(self, scores):
         valid_scores = [(idx, score) for idx, score in scores.items() if score != -1]
         video_scores = np.interp(list(scores.keys()), *zip(*valid_scores))
-
         return dict(zip(scores.keys(), video_scores))
 
     def _score_temporal_summaries(self, video, temporal_summaries):
@@ -132,29 +131,28 @@ class LLMAnomalyScorer:
             )
             batch_frame_idxs = range(batch_start_frame, batch_end_frame, self.frame_interval)
 
-            dialogs = self._prepare_dialogs(temporal_summaries, batch_frame_idxs, is_summary=True)
+            prompts = self._prepare_prompts(temporal_summaries, batch_frame_idxs, is_summary=True)
 
-            results = self.generator.chat_completion(
-                dialogs,
-                max_gen_len=self.max_gen_len,
-                temperature=self.temperature,
-                top_p=self.top_p,
-            )
+            results = self.generator.generate(prompts, self.sampling_params)
 
             for result, frame_idx in zip(results, batch_frame_idxs):
-                response = result["generation"]["content"]
-                score = self._parse_score(response)
+                print(f"Response for frame {frame_idx}: {result}")
+                response_text = result.outputs[0].text.strip()
+                print(f"Response text: {response_text}")
+                if "</think>" in response_text:
+                    response_score = response_text.split("</think>")[-1].strip()
+                else:
+                    response_score = response_text.strip()
+                score = self._parse_score(response_score)
                 video_scores[str(frame_idx)] = score
 
         video_scores = self._interpolate_unmatched_scores(video_scores)
-
         return video_scores
 
     def process_video(self, video, score_summary):
         video_name = Path(video.path).name
 
         if not score_summary:
-            # Generate temporal summaries
             video_caption_path = Path(self.captions_dir) / f"{video_name}.json"
             with open(video_caption_path) as f:
                 video_captions = json.load(f)
@@ -167,7 +165,6 @@ class LLMAnomalyScorer:
                 with open(output_path, "w") as f:
                     json.dump(temporal_summaries, f, indent=4)
         else:
-            # Score temporal summaries
             temporal_summaries_path = Path(self.output_summary_dir) / f"{video_name}.json"
             with open(temporal_summaries_path) as f:
                 temporal_summaries = json.load(f)
@@ -191,8 +188,6 @@ def run(
     output_scores_dir,
     output_summary_dir,
     captions_dir,
-    ckpt_dir,
-    tokenizer_path,
     temperature,
     top_p,
     max_seq_len,
@@ -234,8 +229,6 @@ def run(
         output_scores_dir=output_scores_dir,
         output_summary_dir=output_summary_dir,
         captions_dir=captions_dir,
-        ckpt_dir=ckpt_dir,
-        tokenizer_path=tokenizer_path,
         temperature=temperature,
         top_p=top_p,
         max_seq_len=max_seq_len,
@@ -258,36 +251,26 @@ def parse_args():
     parser.add_argument("--output_scores_dir", type=str)
     parser.add_argument("--output_summary_dir", type=str, required=True)
     parser.add_argument("--captions_dir", type=str)
-    parser.add_argument("--ckpt_dir", type=str, required=True)
-    parser.add_argument("--tokenizer_path", type=str, required=True)
     parser.add_argument("--temperature", type=float, default=0.6)
     parser.add_argument("--top_p", type=float, default=0.9)
-    parser.add_argument("--max_seq_len", type=int, default=512)
+    parser.add_argument("--max_seq_len", type=int, default=4096)
     parser.add_argument("--max_gen_len", type=int, default=None)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--pathname", type=str, default="*.json")
     parser.add_argument("--num_jobs", type=int, default=1)
     parser.add_argument("--job_index", type=int, default=0)
-    parser.add_argument(
-        "--score_summary",
-        action="store_true",
-        help="If True, score the temporal summaries. If False, generate the temporal summaries.",
-    )
+    parser.add_argument("--score_summary", action="store_true")
 
     args = parser.parse_args()
 
     if args.score_summary:
         if not (args.context_prompt and args.format_prompt and args.output_scores_dir):
-            parser.error(
-                "--context_prompt, --format_prompt, and --output_scores_dir are required for scoring the temporal summaries."
-            )
+            parser.error("--context_prompt, --format_prompt, and --output_scores_dir are required for scoring the temporal summaries.")
     else:
         if not (args.captions_dir and args.summary_prompt):
-            parser.error(
-                "--captions_dir and --summary_prompt are required for generating the temporal summaries."
-            )
+            parser.error("--captions_dir and --summary_prompt are required for generating the temporal summaries.")
 
-    return parser.parse_args()
+    return args
 
 
 if __name__ == "__main__":
@@ -303,8 +286,6 @@ if __name__ == "__main__":
         output_scores_dir=args.output_scores_dir,
         output_summary_dir=args.output_summary_dir,
         captions_dir=args.captions_dir,
-        ckpt_dir=args.ckpt_dir,
-        tokenizer_path=args.tokenizer_path,
         temperature=args.temperature,
         top_p=args.top_p,
         max_seq_len=args.max_seq_len,

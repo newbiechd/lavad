@@ -1,5 +1,5 @@
 #!/bin/bash
-dataset_dir="YOUR_DATASET_PATH"
+dataset_dir="/data/changhd_data/lavad/datasets/ucf_crime"
 batch_size=32
 frame_interval=16
 index_dim=1024

@@ -1,18 +1,19 @@
 #!/bin/bash
 export OMP_NUM_THREADS=8
 
-dataset_dir="YOUR_DATASET_PATH"
-llm_model_name="llama-2-13b-chat"
+dataset_dir="/data/changhd_data/lavad/datasets/ucf_crime"
+llm_model_name="Deepseek-R1-Distill-Qwen-14B"
 frame_interval=16
 num_neighbors=10
 video_fps=30  # Change this to the frame rate of your videos
 
-exp_id=""  # Change this to the experiment ID from scripts/04_query_llm.sh
+exp_id="540972"  # Change this to the experiment ID from scripts/04_query_llm.sh
 index_name="opt-6.7b-coco+opt-6.7b+flan-t5-xxl+flan-t5-xl+flan-t5-xl-coco"  # Change this to the index name you created in scripts/02_create_index.sh
 
 # Set paths
 root_path="${dataset_dir}/frames"
 annotationfile_path="${dataset_dir}/annotations/test.txt"
+temporal_annotation_file="${dataset_dir}/annotations/Temporal_Anomaly_Annotation_for_Testing_Videos.txt"
 
 context_prompt="If you were a law enforcement agency, how would you rate the scene described on a scale from 0 to 1, with 0 representing a standard scene and 1 denoting a scene with suspicious activities?"
 
@@ -32,12 +33,11 @@ output_dir="${dataset_dir}/scores/refined/${llm_model_name}/${index_name}/${dir_
 python -m src.eval \
     --root_path "$root_path" \
     --annotationfile_path "$annotationfile_path" \
+    --temporal_annotation_file "$temporal_annotation_file" \
     --scores_dir "$scores_dir" \
     --similarity_dir "$similarity_dir" \
     --captions_dir "$captions_dir" \
     --output_dir "$output_dir" \
     --frame_interval "$frame_interval" \
     --num_neighbors "$num_neighbors" \
-    --without_labels \
-    --visualize \
     --video_fps "$video_fps"
