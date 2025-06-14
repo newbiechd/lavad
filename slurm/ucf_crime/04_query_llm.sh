@@ -2,7 +2,7 @@
 #SBATCH --time=1-00:00:00
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=16
 #SBATCH --mem=128G
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:a100:2
 #SBATCH --array=0-0%1
 #SBATCH --output=output/04_query_llm_ucf_crime_%A_%a.out
 
@@ -10,7 +10,7 @@ export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export CUDA_VISIBLE_DEVICES=0,1
 
 # Set the UCF Crime directory
-ucf_crime_dir="/path/to/directory/ucf_crime/"
+ucf_crime_dir="/home/JJ_Group/changhd2504/lavad/datasets/ucf_crime"
 
 # Set paths
 root_path="${ucf_crime_dir}/frames"
@@ -37,9 +37,10 @@ dir_name=${dir_name//\//_}
 dir_name=$(printf "%s_%03d_%s" "$SLURM_ARRAY_JOB_ID" "$SLURM_ARRAY_TASK_ID" "$dir_name")
 
 # Activate the virtual environment
-VENV_DIR="/path/to/venv/lavad"
+# VENV_DIR="/path/to/venv/lavad"
 # shellcheck source=/dev/null
-source "$VENV_DIR/bin/activate"
+# source "$VENV_DIR/bin/activate"
+conda activate lavad
 
 output_scores_dir="${ucf_crime_dir}/scores/raw/${llm_model_name}/${index_name}/${dir_name}/"
 output_summary_dir="${ucf_crime_dir}/captions/summary/${llm_model_name}/$index_name/"

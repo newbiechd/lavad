@@ -2,12 +2,12 @@
 #SBATCH --time=1-00:00:00
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=8
 #SBATCH --mem=128G
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:a100:1
 #SBATCH --array=0-0%1
 #SBATCH --output=output/02_create_index_ucf_crime_%A_%a.out
 
 # Set the UCF Crime directory
-ucf_crime_dir="/path/to/directory/ucf_crime/"
+ucf_crime_dir="/home/JJ_Group/changhd2504/lavad/datasets/ucf_crime"
 
 # Set paths
 root_path="${ucf_crime_dir}/frames"
@@ -41,9 +41,10 @@ names=${names%+}
 echo "Creating index for $names"
 
 # Activate the virtual environment
-VENV_DIR="/path/to/venv/lavad"
+# VENV_DIR="/path/to/venv/lavad"
 # shellcheck source=/dev/null
-source "$VENV_DIR/bin/activate"
+# source "$VENV_DIR/bin/activate"
+conda activate lavad
 
 index_name="index_flat_ip"
 output_dir="${ucf_crime_dir}/index/${names}/${index_name}/"
