@@ -46,7 +46,7 @@ class LLMAnomalyScorer:
         self.max_gen_len = max_gen_len
 
         self.generator = LLM(
-            model="/data/changhd_data/models/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
+            model="./libs/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
             tensor_parallel_size=2,
             max_num_seqs=1,
             max_model_len=self.max_seq_len,

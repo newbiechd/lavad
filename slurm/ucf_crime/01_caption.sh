@@ -1,10 +1,13 @@
 #!/bin/bash
+#SBATCH --job-name=01_caption_ucf_crime_lavad
 #SBATCH --time=1-00:00:00
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --gres=gpu:a100:1
 #SBATCH --array=0-4%5
 #SBATCH --output=output/01_caption_ucf_crime_%A_%a.out
+#SBATCH --mail-user=newbiechd@outlook.com
+#SBATCH --mail-type=ALL
 
 # Set the UCF Crime directory
 ucf_crime_dir="/home/JJ_Group/changhd2504/lavad/datasets/ucf_crime"
@@ -28,7 +31,7 @@ pretrained_model_names=(
 # VENV_DIR="/home/JJ_Group/changhd2504/.conda/envs/lavad"
 # shellcheck source=/dev/null
 # source "$VENV_DIR/bin/activate"
-conda activate lavad
+# conda activate lavad
 
 # Get the pretrained model name for the current task ID
 pretrained_model_name="${pretrained_model_names[$SLURM_ARRAY_TASK_ID]}"

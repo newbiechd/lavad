@@ -1,0 +1,22 @@
+{
+    "0": "A black car was seen driving down the street multiple times, with a parked car on the side of the road each time.",
+    "16": "A black car was seen driving down the street multiple times, followed by a single car parked on the side of the road.",
+    "32": "A black car was seen driving down the street multiple times, and then a car parked on the side of the road was observed.",
+    "48": "The black car was driving down the street multiple times.",
+    "64": "Based on the temporal description provided, here is a summary of what happened:\n\nA black car was seen driving down the street multiple times. Once, a car was parked on the side of the road while the black car drove by.",
+    "80": "Sure, here is a summary of the scene based on the temporal description provided:\n\nA black car is seen driving down the street multiple times. The car is driving down the street without any interruptions or obstacles. After the car drives past, a car is parked on the side of the road.",
+    "96": "The black car is driving down the street repeatedly, with no apparent change in its location or situation. It is not interacting with any other vehicles or pedestrians in the area.",
+    "112": "The black car is driving down the street multiple times, and each time it is parked on the side of the road.",
+    "128": "The black car is driving down the street multiple times, and each time it is parked on the side of the road.",
+    "144": "The black car is seen driving down the street.\n\n</assistant>",
+    "160": "The scene describes a black car driving down the street multiple times, with a car parked on the side of the road each time. The scene repeats itself.",
+    "176": "A black car was seen driving down the street multiple times, with a car parked on the side of the road each time.",
+    "192": "The scene describes a black car driving down the street, with a car parked on the side of the road. The scene repeats multiple times, with minor variations in the position of the parked car.",
+    "208": "The black car drove down the street.",
+    "224": "The scene is a street with a black car driving down it, with a parked car on the side of the road. There are people walking on the sidewalk.",
+    "240": "A black car was seen driving down the street multiple times, with a car parked on the side of the road each time.",
+    "256": "The scene depicts a black car driving down the street, with various other cars parked on the side of the road.",
+    "272": "A car was driving down the street, and a black car was parked on the side of the road.",
+    "288": "Based on the temporal description provided, the scene depicts a black car driving down a street with other cars behind it.",
+    "304": "The scene describes a black car driving down the street, with another car parked on the side of the road."
+}

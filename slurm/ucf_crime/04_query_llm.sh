@@ -1,10 +1,13 @@
 #!/bin/bash
+#SBATCH --job-name=04_query_llm_ucf_crime_lavad
 #SBATCH --time=1-00:00:00
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=16
 #SBATCH --mem=128G
 #SBATCH --gres=gpu:a100:2
 #SBATCH --array=0-0%1
 #SBATCH --output=output/04_query_llm_ucf_crime_%A_%a.out
+#SBATCH --mail-user=newbiechd@outlook.com
+#SBATCH --mail-type=ALL
 
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export CUDA_VISIBLE_DEVICES=0,1
@@ -15,7 +18,7 @@ ucf_crime_dir="/home/JJ_Group/changhd2504/lavad/datasets/ucf_crime"
 # Set paths
 root_path="${ucf_crime_dir}/frames"
 annotationfile_path="${ucf_crime_dir}/annotations/test.txt"
-llm_model_name="llama-2-13b-chat"
+llm_model_name="Deepseek-R1-Distill-Qwen-14B"
 batch_size=64
 frame_interval=16
 
@@ -40,14 +43,14 @@ dir_name=$(printf "%s_%03d_%s" "$SLURM_ARRAY_JOB_ID" "$SLURM_ARRAY_TASK_ID" "$di
 # VENV_DIR="/path/to/venv/lavad"
 # shellcheck source=/dev/null
 # source "$VENV_DIR/bin/activate"
-conda activate lavad
+# conda activate lavad
 
 output_scores_dir="${ucf_crime_dir}/scores/raw/${llm_model_name}/${index_name}/${dir_name}/"
 output_summary_dir="${ucf_crime_dir}/captions/summary/${llm_model_name}/$index_name/"
 
 # Run the Python script with the specified parameters
-torchrun \
-    --nproc_per_node 2 --nnodes 1 -m src.models.llm_anomaly_scorer \
+python \
+    -m src.models.llm_anomaly_scorer \
     --root_path "$root_path" \
     --annotationfile_path "$annotationfile_path" \
     --batch_size "$batch_size" \
@@ -55,11 +58,9 @@ torchrun \
     --summary_prompt "$summary_prompt" \
     --output_summary_dir "$output_summary_dir" \
     --captions_dir "$captions_dir" \
-    --ckpt_dir libs/llama/llama-2-13b-chat/ \
-    --tokenizer_path libs/llama/tokenizer.model
 
-torchrun \
-    --nproc_per_node 2 --nnodes 1 -m src.models.llm_anomaly_scorer \
+python \
+    -m src.models.llm_anomaly_scorer \
     --root_path "$root_path" \
     --annotationfile_path "$annotationfile_path" \
     --batch_size "$batch_size" \
@@ -68,6 +69,4 @@ torchrun \
     --context_prompt "$context_prompt" \
     --format_prompt "$format_prompt" \
     --output_scores_dir "$output_scores_dir" \
-    --ckpt_dir libs/llama/llama-2-13b-chat/ \
-    --tokenizer_path libs/llama/tokenizer.model \
     --score_summary

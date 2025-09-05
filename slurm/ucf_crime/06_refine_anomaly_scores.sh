@@ -1,10 +1,13 @@
 #!/bin/bash
-#SBATCH --time=1-00:00:00
+#SBATCH --job-name=06_refine_anomaly_scores_ucf_crime_lavad
+#SBATCH --time=2-00:00:00
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=16
 #SBATCH --mem=128G
 #SBATCH --gres=gpu:a100:1
 #SBATCH --array=0-0%1
 #SBATCH --output=output/06_refine_anomaly_scores_ucf_crime_%A_%a.out
+#SBATCH --mail-user=newbiechd@outlook.com
+#SBATCH --mail-type=ALL
 
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
@@ -14,7 +17,7 @@ ucf_crime_dir="/home/JJ_Group/changhd2504/lavad/datasets/ucf_crime"
 # Set paths
 root_path="${ucf_crime_dir}/frames"
 annotationfile_path="${ucf_crime_dir}/annotations/test.txt"
-llm_model_name="llama-2-13b-chat"
+llm_model_name="Deepseek-R1-Distill-Qwen-14B"
 batch_size=64
 frame_interval=16
 fps=30
@@ -24,7 +27,7 @@ num_neighbors=10
 
 context_prompt="If you were a law enforcement agency, how would you rate the scene described on a scale from 0 to 1, with 0 representing a standard scene and 1 denoting a scene with suspicious activities?"
 
-exp_id="2035605_002"
+exp_id="78288_000"
 
 # Convert to lowercase and replace spaces with underscores
 dir_name=$(echo "$context_prompt" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
@@ -38,7 +41,7 @@ dir_name=$(printf "%s_%s" "$exp_id" "$dir_name")
 # VENV_DIR="/path/to/venv/lavad"
 # shellcheck source=/dev/null
 # source "$VENV_DIR/bin/activate"
-conda activate lavad
+# conda activate lavad
 
 index_name="opt-6.7b-coco+opt-6.7b+flan-t5-xxl+flan-t5-xl+flan-t5-xl-coco"
 captions_dir="$ucf_crime_dir/captions/summary/${llm_model_name}/$index_name/"

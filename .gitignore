@@ -6,6 +6,10 @@ datasets/ucf_crime/frames/
 libs/llama/llama-2-13b-chat/
 libs/llama/tokenizer_checklist.chk
 libs/llama/tokenizer.model
+libs/LLM-Research/
+
+# DeepSeek
+libs/deepseek-ai/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
