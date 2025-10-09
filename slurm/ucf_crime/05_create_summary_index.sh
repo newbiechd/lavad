@@ -15,7 +15,7 @@ ucf_crime_dir="/home/JJ_Group/changhd2504/lavad/datasets/ucf_crime"
 # Set paths
 root_path="${ucf_crime_dir}/frames"
 annotationfile_path="${ucf_crime_dir}/annotations/test.txt"
-llm_model_name="Deepseek-R1-Distill-Qwen-14B"
+llm_model_name="llama-2-13b-chat"
 batch_size=64
 frame_interval=16
 index_dim=1024

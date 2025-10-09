@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=04_query_llm_ucf_crime_lavad
-#SBATCH --time=1-00:00:00
+#SBATCH --time=4-00:00:00
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=16
 #SBATCH --mem=128G
 #SBATCH --gres=gpu:a100:2
@@ -18,7 +18,7 @@ ucf_crime_dir="/home/JJ_Group/changhd2504/lavad/datasets/ucf_crime"
 # Set paths
 root_path="${ucf_crime_dir}/frames"
 annotationfile_path="${ucf_crime_dir}/annotations/test.txt"
-llm_model_name="Deepseek-R1-Distill-Qwen-14B"
+llm_model_name="Llama-3-8B-Instruct"
 batch_size=64
 frame_interval=16
 
@@ -50,7 +50,7 @@ output_summary_dir="${ucf_crime_dir}/captions/summary/${llm_model_name}/$index_n
 
 # Run the Python script with the specified parameters
 python \
-    -m src.models.llm_anomaly_scorer \
+    -m src.models.llm_anomaly_scorer_llama_vllm \
     --root_path "$root_path" \
     --annotationfile_path "$annotationfile_path" \
     --batch_size "$batch_size" \
@@ -60,7 +60,7 @@ python \
     --captions_dir "$captions_dir" \
 
 python \
-    -m src.models.llm_anomaly_scorer \
+    -m src.models.llm_anomaly_scorer_llama_vllm \
     --root_path "$root_path" \
     --annotationfile_path "$annotationfile_path" \
     --batch_size "$batch_size" \

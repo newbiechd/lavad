@@ -17,7 +17,7 @@ ucf_crime_dir="/home/JJ_Group/changhd2504/lavad/datasets/ucf_crime"
 # Set paths
 root_path="${ucf_crime_dir}/frames"
 annotationfile_path="${ucf_crime_dir}/annotations/test.txt"
-llm_model_name="Deepseek-R1-Distill-Qwen-14B"
+llm_model_name="llama-2-13b-chat"
 batch_size=64
 frame_interval=16
 fps=30
@@ -27,7 +27,7 @@ num_neighbors=10
 
 context_prompt="If you were a law enforcement agency, how would you rate the scene described on a scale from 0 to 1, with 0 representing a standard scene and 1 denoting a scene with suspicious activities?"
 
-exp_id="78288_000"
+exp_id="78705_000"
 
 # Convert to lowercase and replace spaces with underscores
 dir_name=$(echo "$context_prompt" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')

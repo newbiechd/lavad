@@ -16,7 +16,7 @@ ucf_crime_dir="/home/JJ_Group/changhd2504/lavad/datasets/ucf_crime"
 root_path="${ucf_crime_dir}/frames"
 annotationfile_path="${ucf_crime_dir}/annotations/test.txt"
 temporal_annotation_file="${ucf_crime_dir}/annotations/Temporal_Anomaly_Annotation_for_Testing_Videos.txt"
-llm_model_name="Deepseek-R1-Distill-Qwen-14B"
+llm_model_name="llama-2-13b-chat"
 index_name="opt-6.7b-coco+opt-6.7b+flan-t5-xxl+flan-t5-xl+flan-t5-xl-coco"
 frame_interval=16
 num_neighbors=10
@@ -25,7 +25,7 @@ video_fps=30
 
 context_prompt="If you were a law enforcement agency, how would you rate the scene described on a scale from 0 to 1, with 0 representing a standard scene and 1 denoting a scene with suspicious activities?"
 
-exp_id="78288_000"
+exp_id="78705_000"
 
 # Convert to lowercase and replace spaces with underscores
 dir_name=$(echo "$context_prompt" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
@@ -58,4 +58,5 @@ python -m src.eval \
     --frame_interval "$frame_interval" \
     --normal_label "$normal_label" \
     --num_neighbors "$num_neighbors" \
-    --video_fps "$video_fps"
+    --video_fps "$video_fps" \
+    # --visualize
